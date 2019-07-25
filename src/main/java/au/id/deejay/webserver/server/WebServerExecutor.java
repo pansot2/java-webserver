@@ -9,9 +9,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The executor maintains a thread pool for worker threads servicing individual client connections.
@@ -21,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class WebServerExecutor implements Runnable {
 
 	private static final Logger LOG = LoggerFactory.getLogger(WebServerExecutor.class);
+        private static final int maxRep = 3;
 	private final ResponseFactory responseFactory;
 	private int port;
 	private int timeout;
@@ -42,7 +47,7 @@ public class WebServerExecutor implements Runnable {
 		this.timeout = timeout;
 		this.maxThreads = maxThreads;
 		this.responseFactory = responseFactory;
-
+                
 		running = false;
 	}
 
@@ -51,16 +56,20 @@ public class WebServerExecutor implements Runnable {
 		running = true;
 
 		threadPool = Executors.newFixedThreadPool(maxThreads);
-
-		try (ServerSocket serverSocket = new ServerSocket(port)) {
+                LOG.info("Server port {}", port);
+		try (ServerSocket serverSocket = null) { //new ServerSocket(13453, 100, InetAddress.getLocalHost())) {
 
 			// Only block for 1 second so the running loop can escape if the server is stopped.
-			serverSocket.setSoTimeout(1000);
+			//serverSocket.setSoTimeout(1000);
 
-			LOG.info("Server listening on port {}", serverSocket.getLocalPort());
+			//LOG.info("Server listening on port {}", serverSocket.getLocalPort());
 
-			while (running()) {
-				handleConnection(serverSocket);
+                        int rep = 0;
+                        TestClass mc = new TestClass();
+
+			while (running() && rep < maxRep) {
+				handleConnection(serverSocket,mc);
+                                rep++;
 			}
 
 		} catch (IOException e) {
@@ -98,30 +107,90 @@ public class WebServerExecutor implements Runnable {
 	}
 
 	@SuppressWarnings("squid:S1166") // Ignore the suppressed SocketTimeoutException
-	private void handleConnection(ServerSocket serverSocket) throws IOException {
+	private void handleConnection(ServerSocket serverSocket, TestClass mc) throws IOException {
 		try {
-			// Wait for a client connection
-			Socket client = serverSocket.accept();
+                        Thread thread = new Thread(){
+			    public void run(){
+                              try {
+                                  System.out.println("0000"); 
+			          mc.put(serverSocket, responseFactory);
+                                  mc.get(threadPool);
+                              } catch (Exception e) {
+                                        System.out.println("err1"); 
+				}
+			    }
+			};
 
-			// Assign the connection to a worker
-			Runnable worker = assignWorker(client);
-
-			// Queue the worker for execution
-			threadPool.execute(worker);
-		} catch (SocketTimeoutException e) {
-			/* This exception is expected due to the short socket timeout set in run(), which gives the connection loop
-			 a chance to escape if the server is stopped. Here we just swallow the exception and return control to the
-			 connection loop. */
+			thread.start();
+			
+		} catch (Exception e) {
+			System.out.println("err2"); 
 		}
 	}
 
-	private Runnable assignWorker(Socket client) {
+	
+
+}
+
+
+class TestClass {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TestClass.class);
+    private final static Lock l = new ReentrantLock();
+    private static int filled = 0;
+    private static ArrayList queue = new ArrayList();
+    private static final int MAX = 3;
+
+    public void put(ServerSocket serverSocket, ResponseFactory responseFactory) throws Exception {
+        Runnable worker = null;
+        l.lock();
+        if (filled < MAX) {
+            System.out.println("3333"); 
+            //other code
+            // Wait for a client connection
+	//    Socket client = serverSocket.accept();
+
+	    // Assign the connection to a worker
+	//    worker = assignWorker(client, responseFactory);
+
+	    
+            l.unlock();  
+        } else {
+            l.unlock();
+            return;
+        }
+        l.lock();
+        System.out.println("4444"); 
+        // assert (filled < ΜΑΧ);
+        filled++;
+        queue.add(worker);
+        l.unlock();
+        return ;
+
+    }
+
+    public Object get(ExecutorService threadPool) throws Exception {
+        Object worker = null;
+        l.lock();
+
+        if (filled > 0) {
+            System.out.println("55555"); 
+            filled--;
+            worker = queue.remove(0);
+            // Queue the worker for execution
+	 //   threadPool.execute((Runnable)worker);
+        }
+        l.unlock();
+
+        return worker;
+    }
+
+    private Runnable assignWorker(Socket client, ResponseFactory responseFactory) {
 		try {
-			client.setSoTimeout(timeout * 1000);
+			client.setSoTimeout(10 * 1000);
 		} catch (SocketException e) {
 			LOG.warn("Unable to set socket timeout", e);
 		}
 		return new WebWorker(client, responseFactory);
 	}
-
 }
