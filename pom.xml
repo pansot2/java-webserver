@@ -114,7 +114,7 @@
             </plugin>
 
             <!-- Validate against Checkstyle rules -->
-            <plugin>
+            <!--plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>2.17</version>
                 <configuration>
@@ -132,7 +132,7 @@
                         <phase>process-classes</phase>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
 
         </plugins>
 

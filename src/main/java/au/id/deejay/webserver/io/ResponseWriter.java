@@ -68,7 +68,11 @@ public class ResponseWriter extends Writer {
 
 	@Override
 	public void write(char[] cbuf, int off, int len) throws IOException {
-		outputStream.write(new String(cbuf).getBytes(StandardCharsets.UTF_8), off, len);
+            try{
+		outputStream.write(new String(cbuf).getBytes(), off, len);
+            } catch (Exception e) {
+			throw new ResponseException("Failed to write response", e);
+		}
 	}
 
 	@Override
