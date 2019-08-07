@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.List;
@@ -36,6 +38,8 @@ public class WebWorker implements Runnable {
 	private final Socket client;
 	private final ResponseFactory responseFactory;
 	private boolean keepAlive = false;
+        static String[] requests = {"POST /lala1 HTTP/1.1\nHost: localhost\n\n","POST /lala2 HTTP/1.1\nHost: localhost\n\n","POST /lala3 HTTP/1.1\nHost: localhost\n\n"};
+        static int requestIndex = 0;
 
 	/**
 	 * Creates a new {@link WebWorker}.
@@ -60,14 +64,14 @@ public class WebWorker implements Runnable {
 		}
 	}
 
-	private void handleConnection() {
+	void handleConnection() {
 		InputStream inputStream;
 		OutputStream outputStream;
 
 		try {
-			inputStream = client.getInputStream();
-			outputStream = client.getOutputStream();
-		} catch (IOException e) {
+			inputStream = new ByteArrayInputStream(requests[requestIndex++].getBytes());
+                        outputStream = new ByteArrayOutputStream(100);
+		} catch (Exception e) {
 			LOG.error("Failed to acquire I/O streams from client connection", e);
 			return;
 		}
@@ -88,13 +92,15 @@ public class WebWorker implements Runnable {
 				response = generateResponse(request);
 
 				// Log the request
-				LOG.info("({}) - \"{} {} {}\" {} {}",
+			/*	LOG.info("({}) - \"{} {} {}\" {} {}",
 						 client.getRemoteSocketAddress(),
 						 request.method(),
 						 request.uri(),
 						 request.version(),
 						 response.status().code(),
-						 response.headers().value("Content-length"));
+						 response.headers().value("Content-length"));*/
+
+                                 keepAlive = false;
 
 			} catch (RequestException e) {
 				LOG.error("Bad request from " + client.getRemoteSocketAddress(), e);

@@ -58,7 +58,7 @@ public class ErrorResponse extends HttpResponse {
 
 	@Override
 	public InputStream stream() {
-		String body = MessageFormat.format("<title>{0} {1}</title><h1>{0} {1}</h1>", status().code(), status().description());
+		String body = "<title>" + status().code() + " " + status().description() + "</title><h1>" + status().code() + " " + status().description() + "</h1>";
 		return new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
 	}
 

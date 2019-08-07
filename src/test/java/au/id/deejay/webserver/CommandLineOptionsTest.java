@@ -132,7 +132,7 @@ public class CommandLineOptionsTest {
 
 		// default
 		options = new CommandLineOptions();
-		assertThat(options.maxThreads(), is(equalTo(20)));
+		assertThat(options.maxThreads(), is(equalTo(4)));
 	}
 
 

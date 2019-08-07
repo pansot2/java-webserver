@@ -27,6 +27,7 @@ public class WebServerExecutor implements Runnable {
 	private int maxThreads;
 	private ExecutorService threadPool;
 	private boolean running;
+        private static final int maxRep = 2;
 
 	/**
 	 * Creates a new {@link WebServerExecutor}.
@@ -50,23 +51,40 @@ public class WebServerExecutor implements Runnable {
 	public void run() {
 		running = true;
 
-		threadPool = Executors.newFixedThreadPool(maxThreads);
+	//	threadPool = Executors.newFixedThreadPool(maxThreads);
 
-		try (ServerSocket serverSocket = new ServerSocket(port)) {
+	//	try (ServerSocket serverSocket = new ServerSocket()) {
 
 			// Only block for 1 second so the running loop can escape if the server is stopped.
-			serverSocket.setSoTimeout(1000);
+		//	serverSocket.setSoTimeout(1000);
 
-			LOG.info("Server listening on port {}", serverSocket.getLocalPort());
+		//	LOG.info("Server listening on port {}", serverSocket.getLocalPort());
 
-			while (running()) {
-				handleConnection(serverSocket);
+                        int rep = 0;
+			while (running() && rep < maxRep) {
+                                try {
+				        Thread thread = new Thread(){
+					    public void run(){
+				              try {
+						  handleConnection();
+				              } catch (Exception e) {
+				                        System.out.println("err1"); 
+						}
+					    }
+					};
+
+					thread.start();
+
+				} catch (Exception e) {
+					System.out.println("err2"); 
+				}
+				
+                                rep++;
 			}
 
-		} catch (IOException e) {
-			LOG.warn("Error listening for client connection.", e);
-			stop();
-		}
+		//} catch (IOException e) {
+		//	LOG.warn("Error listening for client connection.", e);
+		//}
 	}
 
 	/**
@@ -84,8 +102,8 @@ public class WebServerExecutor implements Runnable {
 	public synchronized void stop() {
 		running = false;
 
-		LOG.info("Shutting down web server executor.");
-
+	//	LOG.info("Shutting down web server executor.");
+/*
 		try {
 			threadPool.shutdown();
 			threadPool.awaitTermination(timeout, TimeUnit.SECONDS);
@@ -93,32 +111,32 @@ public class WebServerExecutor implements Runnable {
 			LOG.error("Worker thread pool was interrupted while shutting down. Some client connections may have been terminated prematurely.", e);
 			Thread.currentThread().interrupt();
 		}
-
-		LOG.info("Web server executor has shutdown.");
+*/
+	//	LOG.info("Web server executor has shutdown.");
 	}
 
 	@SuppressWarnings("squid:S1166") // Ignore the suppressed SocketTimeoutException
-	private void handleConnection(ServerSocket serverSocket) throws IOException {
+	private void handleConnection() throws IOException {
 		try {
 			// Wait for a client connection
-			Socket client = serverSocket.accept();
+			Socket client = new Socket();//serverSocket.accept();
 
 			// Assign the connection to a worker
-			Runnable worker = assignWorker(client);
+			WebWorker worker = assignWorker(client);
 
 			// Queue the worker for execution
-			threadPool.execute(worker);
-		} catch (SocketTimeoutException e) {
-			/* This exception is expected due to the short socket timeout set in run(), which gives the connection loop
-			 a chance to escape if the server is stopped. Here we just swallow the exception and return control to the
-			 connection loop. */
+			//threadPool.execute(worker);
+
+                        worker.handleConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
-	private Runnable assignWorker(Socket client) {
+	private WebWorker assignWorker(Socket client) {
 		try {
-			client.setSoTimeout(timeout * 1000);
-		} catch (SocketException e) {
+			//client.setSoTimeout(timeout * 1000);
+		} catch (Exception e) {
 			LOG.warn("Unable to set socket timeout", e);
 		}
 		return new WebWorker(client, responseFactory);

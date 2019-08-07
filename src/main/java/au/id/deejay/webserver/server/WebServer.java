@@ -69,7 +69,7 @@ public class WebServer {
 			throw new IllegalStateException("Server is already running.");
 		}
 
-		LOG.info("Starting web server on {} with {} worker threads.", port == 0 ? "dynamically allocated port" : "port " + port, maxThreads);
+	//	LOG.info("Starting web server on {} with {} worker threads.", port == 0 ? "dynamically allocated port" : "port " + port, maxThreads);
 
 		executorThread = new Thread(executor);
 		executorThread.start();
@@ -88,12 +88,12 @@ public class WebServer {
 			throw new IllegalStateException("Server isn't running.");
 		}
 
-		LOG.info("Stopping server");
+	//	LOG.info("Stopping server");
 
 		executor.stop();
 		running = false;
 
-		LOG.info("Server stopped.");
+	//	LOG.info("Server stopped.");
 
 	}
 

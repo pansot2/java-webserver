@@ -28,7 +28,7 @@ public class CommandLineOptions {
 	/**
 	 * Default max number of worker threads.
 	 */
-	private static final int DEFAULT_MAX_THREADS = 20;
+	private static final int DEFAULT_MAX_THREADS = 4;
 
 	/**
 	 * Default request timeout.
