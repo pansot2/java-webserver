@@ -1,8 +1,7 @@
-#+classpath=${user.home}/Netbeansprojects/JPF/IntermittentFaultsTest/target/classes,${user.home}/NetbeansProjects/JavaMethodsJPF/target/classes
-#,${user.home}/Netbeansprojects/JPF/JPF_CORE/jpf-core/build/main
-#+listener=gov.nasa.jpf.listener.MyListener
-+classpath=/home/local/panossot/java-webserver-jpf3/java-webserver/target/server,/home/local/panossot/java-webserver-jpf3/nastaran-jpf-nhandler-3e888cfbb8b6
-+native_classpath=/home/local/panossot/java-webserver-jpf3/java-webserver/target/server,/home/local/panossot/java-webserver-jpf3/nastaran-jpf-nhandler-3e888cfbb8b6
+###
++classpath=${user.home}/java-webserver/target/server,${user.home}/nastaran-jpf-nhandler-3e888cfbb8b6
++native_classpath=${user.home}/java-webserver/target/server,${user.home}/nastaran-jpf-nhandler-3e888cfbb8b6
++sourcepath=${user.home}/java-webserver/src/main/java
 +listener=gov.nasa.jpf.listener.MyListener
 @using = jpf-nhandler
 
@@ -51,6 +50,7 @@ vm.shared.sync_detection = true
 vm.sync_detection = true
 #vm.parallel.allowed.depth=10-20
 #vm.parallel.allowed.child=[3]
+vm.compilerop = true # Needed for compiler optimization cases
 #fieldNames=filled
 #vm.allowed.threads=main,Thread-1,Thread-2,Thread-3,Thread-4
 #vm.allowed.threads.seqdeps=8:9
