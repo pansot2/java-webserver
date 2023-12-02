@@ -38,7 +38,7 @@ public class WebWorker implements Runnable {
 	private final Socket client;
 	private final ResponseFactory responseFactory;
 	private boolean keepAlive = false;
-        String[] request = "POST /lala1 HTTP/1.1\nHost: localhost\n\n";
+        String request = "POST /lala1 HTTP/1.1\nHost: localhost\n\n";
 
 	/**
 	 * Creates a new {@link WebWorker}.
